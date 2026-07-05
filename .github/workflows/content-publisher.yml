@@ -2,53 +2,51 @@ name: Content Publisher - Daily Auto
 
 on:
   schedule:
-    # Jalankan setiap hari jam 08:00 dan 20:00 WIB (00:00 dan 12:00 UTC)
     - cron: '0 0,12 * * *'
   workflow_dispatch:
-    # Biarkan Anda bisa trigger manual untuk testing
 
 jobs:
   generate-and-publish:
-    name: Generate & Publish TikTok Content
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       
-      - name: Install FFmpeg (for video processing)
+      - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
       
-      - name: Run content generation pipeline
+      - name: Install Playwright browser
+        run: |
+          playwright install chromium
+          playwright install-deps
+      
+      - name: Run content pipeline
         env:
-          # Semua secret disimpan di GitHub Secrets
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # Opsional
-          TIKTOK_MS_TOKEN: ${{ secrets.TIKTOK_MS_TOKEN }}
-          TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
+          # Dari .env → diubah ke GitHub Secrets
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          # Untuk notifikasi ke Telegram (opsional)
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: "sqlite:///./data/autoclip.db"
+          # Session cookie untuk auto-publish
+          TIKTOK_MS_TOKEN: ${{ secrets.TIKTOK_MS_TOKEN }}
+          TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
         run: |
-          # Jalankan pipeline utama
+          mkdir -p data
           python -m backend.main --platform tiktok --publish
       
-      - name: Upload video artifact (for backup)
+      - name: Upload video artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: generated-videos
-          path: |
-            output/videos/*.mp4
-            output/thumbnails/*.jpg
+          path: output/videos/
           retention-days: 7
