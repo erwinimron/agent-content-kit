@@ -21,6 +21,7 @@ env/
 
 # ─── Environment & Secrets ───
 .env
+data.env          # <-- Tambahkan ini!
 !.env.example
 .claude/
 .deepseek/
