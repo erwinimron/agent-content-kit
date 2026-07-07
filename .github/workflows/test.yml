@@ -1,16 +1,33 @@
-- name: Run content pipeline
-  run: |
-    # Start server di background
-    python -m backend.main &
+name: Content Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
     
-    # Tunggu server siap
-    sleep 10
-    
-    # Trigger pipeline via API
-    curl -X POST http://localhost:8000/api/v1/generate-content \
-      -H "Content-Type: application/json" \
-      -d '{"topic": "technology"}' \
-      --max-time 300
-    
-    # Matikan server setelah selesai
-    pkill -f "python -m backend.main"
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install
+      
+      - name: Run pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+        run: |
+          cd backend
+          python -c "from core.pipeline import run; run()"
