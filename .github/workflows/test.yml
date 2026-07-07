@@ -1,39 +1,5 @@
-name: Content Pipeline
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-      
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          playwright install
-      
-      - name: Run content generation
-        env:
-          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          CORS_ORIGINS: http://localhost:3000,http://localhost:5173
-        run: |
-          cd backend
-          python main.py
+- name: Run content pipeline
+  run: |
+    cd backend
+    # Ganti dengan perintah yang benar
+    python -c "from core.pipeline import run_pipeline; run_pipeline()"
