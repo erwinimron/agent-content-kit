@@ -1,0 +1,16 @@
+- name: Run content pipeline
+  run: |
+    # Start server di background
+    python -m backend.main &
+    
+    # Tunggu server siap
+    sleep 10
+    
+    # Trigger pipeline via API
+    curl -X POST http://localhost:8000/api/v1/generate-content \
+      -H "Content-Type: application/json" \
+      -d '{"topic": "technology"}' \
+      --max-time 300
+    
+    # Matikan server setelah selesai
+    pkill -f "python -m backend.main"
