@@ -1,16 +1,10 @@
-name: Content Pipeline
+name: Test Custom Pipeline
 
 on:
   workflow_dispatch:
-    inputs:
-      topic:
-        description: 'Topic for content generation'
-        required: false
-        default: 'technology'
-        type: string
 
 jobs:
-  generate:
+  test-pipeline:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,55 +15,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Install Playwright browsers
-        run: |
-          playwright install
-
-      - name: Run content generation
+      - name: Run test pipeline (Storytelling only)
         env:
-          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
         run: |
-          echo "Starting content generation for topic: ${{ github.event.inputs.topic }}"
-          
-          # 1. Start server di background
-          python -m backend.main &
-          
-          # 2. Tunggu server siap (15 detik)
-          echo "⏳ Waiting for server to be ready..."
-          sleep 15
-          
-          # 3. Cek apakah server sudah jalan
-          curl -s http://localhost:8000/docs > /dev/null && echo "✅ Server is ready!" || echo "⚠️ Server not ready"
-          
-          # 4. CREATE CONTENT JOB via API
-          echo "🚀 Creating content job..."
-          curl -X POST http://localhost:8000/api/v1/content-jobs/ \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"topic\": \"${{ github.event.inputs.topic }}\",
-              \"platforms\": [\"youtube\", \"tiktok\"]
-            }" \
-            --max-time 600
-          
-          # 5. Tunggu proses selesai
-          echo "⏳ Waiting for pipeline to finish..."
-          sleep 60
-          
-          # 6. Matikan server
-          echo "🛑 Stopping server..."
-          pkill -f "python -m backend.main" || echo "Server already stopped"
-          
-          echo "✅ Done!"
+          python -m custom_pipeline.pipeline
