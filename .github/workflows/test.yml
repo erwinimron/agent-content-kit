@@ -1,5 +1,12 @@
-- name: Run content pipeline
-  run: |
-    cd backend
-    # Ganti dengan perintah yang benar
-    python -c "from core.pipeline import run_pipeline; run_pipeline()"
+name: Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run
+        run: echo "Hello"
