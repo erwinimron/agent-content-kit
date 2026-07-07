@@ -43,4 +43,33 @@ jobs:
           CORS_ORIGINS: http://localhost:3000,http://localhost:5173
         run: |
           echo "Starting content generation for topic: ${{ github.event.inputs.topic }}"
-          python -m backend.main
+          
+          # 1. Start server di background
+          python -m backend.main &
+          
+          # 2. Tunggu server siap (15 detik)
+          echo "⏳ Waiting for server to be ready..."
+          sleep 15
+          
+          # 3. Cek apakah server sudah jalan
+          curl -s http://localhost:8000/docs > /dev/null && echo "✅ Server is ready!" || echo "⚠️ Server not ready"
+          
+          # 4. CREATE CONTENT JOB via API
+          echo "🚀 Creating content job..."
+          curl -X POST http://localhost:8000/api/v1/content-jobs/ \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"topic\": \"${{ github.event.inputs.topic }}\",
+              \"platforms\": [\"youtube\", \"tiktok\"]
+            }" \
+            --max-time 600
+          
+          # 5. Tunggu proses selesai
+          echo "⏳ Waiting for pipeline to finish..."
+          sleep 60
+          
+          # 6. Matikan server
+          echo "🛑 Stopping server..."
+          pkill -f "python -m backend.main" || echo "Server already stopped"
+          
+          echo "✅ Done!"
