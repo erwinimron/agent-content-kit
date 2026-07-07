@@ -56,3 +56,8 @@ data/characters/
 
 # Browser login sessions (contains cookies - DO NOT commit)
 data/sessions/
+
+# Custom pipeline
+service-account.json
+custom_pipeline/output/
+*.json
