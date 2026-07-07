@@ -13,7 +13,7 @@ class StorytellingGenerator:
         if not api_key:
             raise ValueError("❌ GEMINI_API_KEY not found")
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        self.model = genai.GenerativeModel("gemini-pro")
     
     def generate(self, product_data: dict) -> dict:
         """Generate storytelling content for a product"""
