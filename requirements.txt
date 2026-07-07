@@ -58,3 +58,10 @@ pytest-cov
 pytest-mock
 pytest-asyncio
 ruff
+
+# ─── Custom Pipeline ───
+google-generativeai>=0.3.0
+gspread>=5.0.0
+pandas>=1.5.0
+
+
