@@ -1,7 +1,7 @@
 # custom_pipeline/content_generators/storytelling.py
 import os
 import logging
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,11 +12,10 @@ class StorytellingGenerator:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("❌ GEMINI_API_KEY not found")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-pro")
+        self.client = genai.Client(api_key=api_key)
     
     def generate(self, product_data: dict) -> dict:
-        """Generate storytelling content for a product"""
+        """Generate storytelling content using Auth Key"""
         product_name = product_data.get('product_name', 'Product')
         description = product_data.get('description', '')
         price = product_data.get('price', '')
@@ -33,8 +32,12 @@ class StorytellingGenerator:
         """
         
         try:
-            response = self.model.generate_content(prompt)
-            script = response.text
+            # Panggil Gemini API dengan cara baru
+            response = self.client.interactions.create(
+                model="gemini-2.5-flash",  # atau "gemini-2.0-flash-exp"
+                input=prompt
+            )
+            script = response.output_text
             
             # Generate caption
             caption_prompt = f"""
@@ -42,8 +45,11 @@ class StorytellingGenerator:
             Include 5-10 hashtag yang relevan.
             Gaya: engaging, casual, dan stylish.
             """
-            caption_response = self.model.generate_content(caption_prompt)
-            caption = caption_response.text
+            caption_response = self.client.interactions.create(
+                model="gemini-2.5-flash",
+                input=caption_prompt
+            )
+            caption = caption_response.output_text
             
             return {
                 "status": "success",
