@@ -51,6 +51,7 @@ playwright
 # ─── OAuth / Upload ───
 google-api-python-client
 google-auth-oauthlib
+google-genai>=0.3.0
 
 # ─── Testing ───
 pytest
