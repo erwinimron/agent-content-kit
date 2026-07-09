@@ -96,7 +96,7 @@ class InfographicGenerator:
         try:
             # 🔥 PERBAIKAN: Kirim config via extra_body
             response = self.client.interactions.create(
-                model="gemini-2.0-flash-exp-image-generation",
+                model="gemini-3.1-flash-image-preview",
                 input=prompt,
                 extra_body={
                     "response_modalities": ["image"],
