@@ -20,6 +20,7 @@ class ContentPipeline:
         self.spreadsheet = SpreadsheetManager()
         self.storytelling = StorytellingGenerator()
         self.infographic = InfographicGenerator()
+        self.drive = DriveUploader()  # 🔥 TAMBAHKAN INI!
     
     def run(self):
         """Run full pipeline: storytelling + infographic"""
