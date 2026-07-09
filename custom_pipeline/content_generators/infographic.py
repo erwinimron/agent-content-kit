@@ -99,7 +99,7 @@ class InfographicGenerator:
                 model="gemini-2.0-flash-exp-image-generation",
                 input=prompt,
                 extra_body={
-                    "response_modalities": ["IMAGE"],
+                    "response_modalities": ["image"],
                     "image_size": "1080x1920"
                 }
             )
