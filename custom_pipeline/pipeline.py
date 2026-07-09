@@ -1,10 +1,10 @@
-# custom_pipeline/pipeline.py (VERSI TEST)
+# custom_pipeline/pipeline.py (VERSI DENGAN INFOGRAPHIC)
 import os
 import sys
 import logging
 from dotenv import load_dotenv
 from custom_pipeline.spreadsheet_manager import SpreadsheetManager
-from custom_pipeline.content_generators import StorytellingGenerator
+from custom_pipeline.content_generators import StorytellingGenerator, InfographicGenerator
 
 load_dotenv()
 
@@ -18,37 +18,44 @@ class ContentPipeline:
     def __init__(self):
         self.spreadsheet = SpreadsheetManager()
         self.storytelling = StorytellingGenerator()
+        self.infographic = InfographicGenerator()
     
     def run(self):
-        """Test pipeline: cuma jalankan storytelling untuk 1 produk"""
-        logger.info("🚀 Starting TEST Pipeline (Storytelling only)")
+        """Run full pipeline: storytelling + infographic"""
+        logger.info("🚀 Starting FULL Pipeline (Storytelling + Infographic)")
         
         products = self.spreadsheet.get_pending_products()
         logger.info(f"📊 Found {len(products)} pending products")
         
         if not products:
-            logger.warning("⚠️ No pending products found. Make sure status is not 'Done'")
+            logger.warning("⚠️ No pending products found")
             return
         
-        # Ambil produk pertama untuk test
-        product = products[0]
-        product_name = product.get('product_name', 'Unknown')
-        logger.info(f"📝 Testing with product: {product_name}")
-        
-        # Generate storytelling
-        result = self.storytelling.generate(product)
-        
-        if result.get('status') == 'success':
-            logger.info(f"✅ Storytelling generated successfully!")
-            logger.info(f"📝 Script preview: {result['script'][:200]}...")
-            logger.info(f"📝 Caption preview: {result['caption'][:200]}...")
+        for product in products:
+            product_name = product.get('product_name', 'Unknown')
+            logger.info(f"📝 Processing: {product_name}")
             
-            # Update status di spreadsheet (opsional)
-            # self.spreadsheet.update_status(0, 'Storytelling Done')
-        else:
-            logger.error(f"❌ Failed: {result.get('error')}")
+            # 1. Generate Storytelling
+            logger.info("📝 Generating storytelling...")
+            story_result = self.storytelling.generate(product)
+            
+            if story_result.get('status') == 'success':
+                logger.info(f"✅ Storytelling: {story_result['script'][:100]}...")
+            else:
+                logger.error(f"❌ Storytelling failed: {story_result.get('error')}")
+            
+            # 2. Generate Infographic
+            logger.info("🎨 Generating infographic...")
+            info_result = self.infographic.generate(product)
+            
+            if info_result.get('status') == 'success':
+                logger.info(f"✅ Infographic: {info_result['total_slides']} slides generated")
+            else:
+                logger.error(f"❌ Infographic failed: {info_result.get('error')}")
+            
+            logger.info(f"✅ Completed: {product_name}")
         
-        logger.info("✅ Test pipeline completed!")
+        logger.info("✅ Pipeline completed!")
 
 if __name__ == "__main__":
     pipeline = ContentPipeline()
