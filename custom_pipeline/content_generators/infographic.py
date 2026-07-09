@@ -74,7 +74,6 @@ class InfographicGenerator:
     def _generate_slide_image(self, slide_data: dict, product_name: str, price: str):
         """Generate individual slide image using Gemini"""
         
-        # Build prompt for Gemini
         prompt = f"""
         Create a premium minimalist fashion infographic slide for a product.
         
@@ -95,17 +94,18 @@ class InfographicGenerator:
         """
         
         try:
+            # 🔥 PERBAIKAN: Kirim config via extra_body
             response = self.client.interactions.create(
                 model="gemini-2.0-flash-exp-image-generation",
                 input=prompt,
-                config={
+                extra_body={
                     "response_modalities": ["IMAGE"],
                     "image_size": "1080x1920"
                 }
             )
             
             # Extract image from response
-            if response.images and len(response.images) > 0:
+            if hasattr(response, 'images') and response.images:
                 image_data = response.images[0].image_data
                 return image_data
             else:
@@ -114,8 +114,8 @@ class InfographicGenerator:
                 
         except Exception as e:
             logger.error(f"❌ Image generation failed: {e}")
-            return self._create_fallback_image(slide_data)
-    
+            return self._create_fallback_image(slide_data)    
+
     def _create_fallback_image(self, slide_data: dict):
         """Fallback: create simple image with text if Gemini image gen fails"""
         # Create blank image
