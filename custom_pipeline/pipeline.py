@@ -1,84 +1,32 @@
-# custom_pipeline/pipeline.py
-import os
-import sys
-import logging
-from dotenv import load_dotenv
-from custom_pipeline.spreadsheet_manager import SpreadsheetManager
-from custom_pipeline.content_generators import StorytellingGenerator, InfographicGenerator
-from custom_pipeline.drive_uploader import DriveUploader
-
-load_dotenv()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from custom_pipeline.telegram_sender import TelegramSender
 
 class ContentPipeline:
     def __init__(self):
         self.spreadsheet = SpreadsheetManager()
         self.storytelling = StorytellingGenerator()
         self.infographic = InfographicGenerator()
-        self.drive = DriveUploader()
+        self.telegram = TelegramSender()  # ← Tambahkan ini
     
     def run(self):
-        """Run full pipeline: storytelling + infographic"""
-        logger.info("🚀 Starting FULL Pipeline (Storytelling + Infographic)")
+        # ... kode yang sudah ada ...
         
-        products = self.spreadsheet.get_pending_products()
-        logger.info(f"📊 Found {len(products)} pending products")
+        # Setelah storytelling selesai
+        if story_result.get('status') == 'success':
+            self.telegram.send_message(
+                f"📝 <b>Storytelling</b>\n\n{story_result['script'][:500]}..."
+            )
         
-        if not products:
-            logger.warning("⚠️ No pending products found")
-            return
-        
-        for product in products:
-            product_name = product.get('product_name', 'Unknown')
-            logger.info(f"📝 Processing: {product_name}")
+        # Setelah infographic selesai
+        if info_result.get('status') == 'success':
+            # Kirim 6 gambar infographic
+            image_paths = []
+            for i in range(1, 7):
+                path = os.path.join(output_dir, f"infographic_{i}.png")
+                if os.path.exists(path):
+                    image_paths.append(path)
             
-            # 1. Generate Storytelling
-            logger.info("📝 Generating storytelling...")
-            story_result = self.storytelling.generate(product)
-            
-            if story_result.get('status') == 'success':
-                logger.info(f"✅ Storytelling: {story_result['script'][:100]}...")
-            else:
-                logger.error(f"❌ Storytelling failed: {story_result.get('error')}")
-            
-            # 2. Generate Infographic
-            logger.info("🎨 Generating infographic...")
-            info_result = self.infographic.generate(product)
-            
-            if info_result.get('status') == 'success':
-                logger.info(f"✅ Infographic: {info_result['total_slides']} slides generated")
-                
-                # Buat folder output
-                output_dir = f"output/{product_name.replace(' ', '_')}"
-                os.makedirs(output_dir, exist_ok=True)
-                
-                # Simpan semua gambar ke file
-                for i, img_data in enumerate(info_result.get('images', [])):
-                    file_path = os.path.join(output_dir, f"infographic_{i+1}.png")
-                    with open(file_path, 'wb') as f:
-                        f.write(img_data)
-                    logger.info(f"💾 Saved: {file_path}")
-                
-                # Upload ke Drive (CUKUP SEKALI!)
-                folder_id = os.getenv("DRIVE_FOLDER_ID")
-                uploaded = self.drive.upload_folder(
-                    folder_path=output_dir,
-                    parent_folder_id=folder_id
+            if image_paths:
+                self.telegram.send_album(
+                    image_paths,
+                    caption=f"🎨 <b>Infographic</b>\nProduct: {product_name}"
                 )
-                logger.info(f"📤 Uploaded {len(uploaded)} files to Drive")
-                
-            else:
-                logger.error(f"❌ Infographic failed: {info_result.get('error')}")
-            
-            logger.info(f"✅ Completed: {product_name}")
-        
-        logger.info("✅ Pipeline completed!")
-
-if __name__ == "__main__":
-    pipeline = ContentPipeline()
-    pipeline.run()
