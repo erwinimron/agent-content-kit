@@ -100,7 +100,7 @@ class InfographicGenerator:
                 input=prompt,
                 extra_body={
                     "response_modalities": ["image"],
-                    # "image_size": "1080x1920"
+                    "image_size": "1080x1920"
                 }
             )
             
