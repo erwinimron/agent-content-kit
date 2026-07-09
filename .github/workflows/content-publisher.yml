@@ -1,52 +1,52 @@
-name: Content Publisher - Daily Auto
+# name: Content Publisher - Daily Auto
 
-on:
-  schedule:
-    - cron: '0 0,12 * * *'
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: '0 0,12 * * *'
+#   workflow_dispatch:
 
-jobs:
-  generate-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   generate-and-publish:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
       
-      - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+#       - name: Install FFmpeg
+#         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+#       - name: Install dependencies
+#         run: pip install -r requirements.txt
       
-      - name: Install Playwright browser
-        run: |
-          playwright install chromium
-          playwright install-deps
+#       - name: Install Playwright browser
+#         run: |
+#           playwright install chromium
+#           playwright install-deps
       
-      - name: Run content pipeline
-        env:
-          # Dari .env → diubah ke GitHub Secrets
-          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          DATABASE_URL: "sqlite:///./data/autoclip.db"
-          # Session cookie untuk auto-publish
-          TIKTOK_MS_TOKEN: ${{ secrets.TIKTOK_MS_TOKEN }}
-          TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
-        run: |
-          mkdir -p data
-          python -m backend.main --platform tiktok --publish
+#       - name: Run content pipeline
+#         env:
+#           # Dari .env → diubah ke GitHub Secrets
+#           LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+#           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+#           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+#           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+#           DATABASE_URL: "sqlite:///./data/autoclip.db"
+#           # Session cookie untuk auto-publish
+#           TIKTOK_MS_TOKEN: ${{ secrets.TIKTOK_MS_TOKEN }}
+#           TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
+#         run: |
+#           mkdir -p data
+#           python -m backend.main --platform tiktok --publish
       
-      - name: Upload video artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-videos
-          path: output/videos/
-          retention-days: 7
+#       - name: Upload video artifact
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: generated-videos
+#           path: output/videos/
+#           retention-days: 7
