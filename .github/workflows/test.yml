@@ -1,28 +1,52 @@
-name: Test Custom Pipeline
+name: Telegram Test
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-pipeline:
+  send-test:
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-
-      - name: Run test pipeline (Storytelling only)
+          pip install requests python-dotenv
+      
+      - name: Send test message to Telegram
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
-          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python -m custom_pipeline.pipeline
+          python -c "
+          import os
+          import requests
+          
+          token = os.getenv('TELEGRAM_BOT_TOKEN')
+          chat_id = os.getenv('TELEGRAM_CHAT_ID')
+          
+          if not token or not chat_id:
+              print('❌ Telegram credentials not set!')
+              exit(1)
+          
+          url = f'https://api.telegram.org/bot{token}/sendMessage'
+          payload = {
+              'chat_id': chat_id,
+              'text': '✅ Test message from GitHub Actions!\n\nPipeline is working! 🚀',
+              'parse_mode': 'HTML'
+          }
+          
+          response = requests.post(url, json=payload)
+          
+          if response.status_code == 200:
+              print('✅ Message sent to Telegram!')
+          else:
+              print(f'❌ Failed: {response.text}')
+              exit(1)
+          "
