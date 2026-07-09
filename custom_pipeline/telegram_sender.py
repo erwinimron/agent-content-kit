@@ -16,6 +16,8 @@ class TelegramSender:
         else:
             self.enabled = True
             self.base_url = f"https://api.telegram.org/bot{self.token}"
+            logger.info("✅ Telegram sender initialized")
+            
     
     def send_message(self, text: str):
         """Send text message to Telegram"""
